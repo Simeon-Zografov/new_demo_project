@@ -1,16 +1,16 @@
 import email
 import imaplib
+from Common.BaseClass import BaseClass
 
 
 def get_last_email(email_address, password, from_email):
-
     server = imaplib.IMAP4_SSL('smtp.gmail.com')
     server.login(email_address, password)
     server.select('INBOX')
     email_ids = server.search(None, 'FROM', from_email)
     email_id_list = email_ids[1][0].decode('utf-8').split()
     list_len = len(email_id_list)
-    latest_email_id = email_id_list[list_len-1]
+    latest_email_id = email_id_list[list_len - 1]
 
     email_dict = {}
     email_data = server.fetch(str(latest_email_id), "(RFC822)")
@@ -39,7 +39,7 @@ def get_last_email(email_address, password, from_email):
 
 
 def get_latest_email_subject():
-    email_body = get_last_email("simeon.hhl.qa@gmail.com", "crpp cvlb oujp ansl", 'no-reply@dev.siworld.io')
+    email_body = get_last_email(BaseClass.email, BaseClass.email_password, 'no-reply@dev.siworld.io')
     if email_body is not None:
         email_subject = email_body["Subject"]
         return email_subject

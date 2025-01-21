@@ -9,7 +9,10 @@ from dotenv import load_dotenv
 from pytest_check import check
 from selenium.webdriver.chrome.service import Service as ChromeService
 from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.chrome.options import Options as ChromeOptions
+from selenium.webdriver.edge.options import Options as EdgeOptions
 from selenium import webdriver
+from webdriver_manager.microsoft import EdgeChromiumDriverManager
 
 
 def check_with_screenshot(driver, cond, message):
@@ -28,6 +31,8 @@ class BaseClass:
     url = os.getenv("URL")
     username = os.getenv("USERNAME")
     password = os.getenv("PASSWORD")
+    email = os.getenv("EMAIL")
+    email_password = os.getenv("EMAIL_PASSWORD")
     browsers = os.getenv("BROWSERS")
     browsers = browsers.split(", ")
 
@@ -35,18 +40,39 @@ class BaseClass:
     def driver(self, request):
         print(os.getenv("CURRENT_ENV"))
         browser = request.param
-
-        print(os.getenv('CI'))
-
         project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        if browser == "Edge":
-            edge_driver_path = os.path.join(project_folder, 'Resources', 'msedgedriver')
-            serv = EdgeService(edge_driver_path)
-            driver = webdriver.Edge(service=serv)
+
+        is_ci = os.getenv('CI') == 'true'
+        if is_ci:
+            if browser == "edge":
+                # Set up Edge options
+                options = EdgeOptions()
+                options.add_argument("--headless")
+                options.add_argument("--disable-gpu")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-extensions")
+                options.add_argument("--disable-infobars")
+                serv = EdgeService(EdgeChromiumDriverManager().install())
+                driver = webdriver.Edge(service=serv, options=options)
+            else:
+                options = ChromeOptions()
+                options.add_argument("--headless")
+                options.add_argument("--disable-gpu")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-extensions")
+                options.add_argument("--disable-infobars")
+                chrome_driver_path = "/usr/bin/chromedriver"
+                serv = ChromeService(chrome_driver_path)
+                driver = webdriver.Chrome(service=serv, options=options)
         else:
-            chrome_driver_path = os.path.join(project_folder, 'Resources', 'chromedriver')
-            serv = ChromeService(chrome_driver_path)
-            driver = webdriver.Chrome(service=serv)
+            if browser == "Edge":
+                driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()))
+            else:
+                chrome_driver_path = os.path.join(project_folder, 'Resources', 'chromedriver')
+                serv = ChromeService(chrome_driver_path)
+                driver = webdriver.Chrome(service=serv)
         driver.implicitly_wait(10)
         driver.maximize_window()
         yield driver
@@ -81,21 +107,49 @@ class BaseClass:
         if mitmdump_process:
             print("Proxy subprocess started")
 
-        # Initiate the driver based on the browser
-        if browser == "Edge":
-            edge_driver_path = os.path.join(project_folder, 'Resources', 'msedgedriver')
-            options = webdriver.EdgeOptions()
-            options.add_argument(f'--proxy-server=http://127.0.0.1:{port}')
-            options.add_argument('--ignore-certificate-errors')
-            serv = EdgeService(edge_driver_path)
-            proxy_driver = webdriver.Edge(service=serv, options=options)
+        if os.getenv('CI') == 'true':
+            if browser == "Edge":
+                options = EdgeOptions()
+                options.add_argument("--headless")
+                options.add_argument("--disable-gpu")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-extensions")
+                options.add_argument("--disable-infobars")
+                options.add_argument(f'--proxy-server=https://127.0.0.1:{port}')
+                options.add_argument('--ignore-certificate-errors')
+                options.add_argument("--allow-insecure-localhost")
+                options.add_argument("--disable-http2")
+                serv = EdgeService(EdgeChromiumDriverManager().install())
+                proxy_driver = webdriver.Edge(service=serv, options=options)
+            else:
+                options = ChromeOptions()
+                options.add_argument("--headless")
+                options.add_argument("--disable-gpu")
+                options.add_argument("--no-sandbox")
+                options.add_argument("--disable-dev-shm-usage")
+                options.add_argument("--disable-extensions")
+                options.add_argument("--disable-infobars")
+                options.add_argument(f'--proxy-server=http://127.0.0.1:{port}')
+                options.add_argument('--ignore-certificate-errors')
+                chrome_driver_path = "/usr/bin/chromedriver"
+                serv = ChromeService(chrome_driver_path)
+                proxy_driver = webdriver.Chrome(service=serv, options=options)
         else:
-            chrome_driver_path = os.path.join(project_folder, 'Resources', 'chromedriver')
-            options = webdriver.ChromeOptions()
-            options.add_argument(f'--proxy-server=http://127.0.0.1:{port}')
-            options.add_argument('--ignore-certificate-errors')
-            serv = ChromeService(chrome_driver_path)
-            proxy_driver = webdriver.Chrome(service=serv, options=options)
+            # Initiate the driver based on the browser
+            if browser == "Edge":
+                options = webdriver.EdgeOptions()
+                options.add_argument(f'--proxy-server=http://127.0.0.1:{port}')
+                options.add_argument('--ignore-certificate-errors')
+                proxy_driver = webdriver.Edge(service=EdgeService(EdgeChromiumDriverManager().install()),
+                                              options=options)
+            else:
+                chrome_driver_path = os.path.join(project_folder, 'Resources', 'chromedriver')
+                options = webdriver.ChromeOptions()
+                options.add_argument(f'--proxy-server=http://127.0.0.1:{port}')
+                options.add_argument('--ignore-certificate-errors')
+                serv = ChromeService(chrome_driver_path)
+                proxy_driver = webdriver.Chrome(service=serv, options=options)
         proxy_driver.implicitly_wait(10)
         proxy_driver.maximize_window()
         yield proxy_driver
@@ -108,33 +162,3 @@ class BaseClass:
             print("Mitmproxy process did not terminate in time. Forcing termination...")
             mitmdump_process.kill()
             time.sleep(5)
-
-    '''@pytest.fixture(scope="session", autouse=True)
-    def setup_project_directory(self, request):
-        project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        reports_path = os.path.join(project_folder, 'Reports')
-        reports_history_path = os.path.join(reports_path, 'history')
-        allure_history_path = os.path.join(project_folder, 'allure-report', 'history')
-
-        # Clear the content of the Reports directory
-        for item in os.listdir(reports_path):
-            item_path = os.path.join(reports_path, item)
-            if os.path.isfile(item_path):
-                os.remove(item_path)
-            elif os.path.isdir(item_path):
-                shutil.rmtree(item_path)
-
-        # Create Reports/history directory if it doesn't exist
-        #os.makedirs(reports_history_path, exist_ok=True)
-
-        # Copy contents of allure-history into Reports/history
-        shutil.copytree(allure_history_path, reports_history_path)
-
-        # Teardown: Execute a terminal command at the end of the session
-        def generate_report():
-            # Replace "your_command" with the terminal command you want to execute
-            command = "allure generate ./Reports --clean"
-            subprocess.run(command, shell=True, check=True)
-
-        request.addfinalizer(generate_report)'''
-
