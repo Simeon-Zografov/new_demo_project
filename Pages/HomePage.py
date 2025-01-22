@@ -41,7 +41,8 @@ class HomePage:
     def get_twitter_heather_text(self):
         wait = WebDriverWait(self.driver, 30)
         twitter_heather = wait.until(
-            EC.visibility_of_element_located((By.XPATH, "//h2//span[@class='css-1qaijid r-bcqeeo r-qvutc0 r-poiln3']")))
+            EC.visibility_of_element_located((By.XPATH, "//div[@aria-label='Home timeline']//h2//span["
+                                                        "@class='css-1jxf684 r-bcqeeo r-1ttztb7 r-qvutc0 r-poiln3']")))
         return twitter_heather.text
 
     def get_twitter_button_url(self):
