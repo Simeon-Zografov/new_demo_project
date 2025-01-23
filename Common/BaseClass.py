@@ -43,7 +43,7 @@ class BaseClass:
 
         is_ci = os.getenv('CI') == 'true'
         if is_ci:
-            if browser == "edge":
+            if browser == "Edge":
                 # Set up Edge options
                 options = EdgeOptions()
                 options.add_argument("--headless")
