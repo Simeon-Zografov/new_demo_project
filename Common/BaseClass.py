@@ -38,7 +38,6 @@ class BaseClass:
 
     @pytest.fixture(scope="class", autouse=True)
     def driver(self, request):
-        print(os.getenv("CURRENT_ENV"))
         browser = request.param
         project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 

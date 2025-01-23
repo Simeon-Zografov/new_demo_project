@@ -1,0 +1,42 @@
+name: Run Selenium Tests and publish report
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      chrome:
+        description: 'Include Chrome'
+        required: false
+        default: true
+        type: boolean
+      edge:
+        description: 'Include Edge'
+        required: false
+        default: false
+        type: boolean
+
+      test_options:
+        description: 'Select test options'
+        required: true
+        default: 'All'
+        type: choice
+        options:
+          - 'All'
+          - 'Accessibility'
+          - 'Contact List'
+          - 'Email'
+          - 'Landing Page'
+          - 'Login'
+          - 'Social Media'
+          - 'Visual'
+
+jobs:
+  chrome-test:
+    name: Run Chrome tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.chrome == 'true' }}
+    steps:
+
+      - name: Set browser variable
+        run: echo "BROWSERS=Chrome" >> "$GITHUB_ENV"
