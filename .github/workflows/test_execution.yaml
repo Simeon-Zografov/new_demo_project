@@ -29,7 +29,6 @@ on:
           - 'Landing Page'
           - 'Login'
           - 'Social Media'
-          - 'Visual'
 
 jobs:
   chrome-test:
@@ -83,8 +82,6 @@ jobs:
               pytest Tests/test_Login.py
             elif [ "${{ github.event.inputs.test_options }}" == 'Social Media' ]; then
               pytest Tests/test_SocialMediaLinks.py
-            elif [ "${{ github.event.inputs.test_options }}" == 'Visual' ]; then
-              pytest Tests/test_VisualTests.py
             else
               echo "Invalid option"
             fi
@@ -170,8 +167,6 @@ jobs:
               pytest Tests/test_Login.py
             elif [ "${{ github.event.inputs.test_options }}" == 'Social Media' ]; then
               pytest Tests/test_SocialMediaLinks.py
-            elif [ "${{ github.event.inputs.test_options }}" == 'Visual' ]; then
-              pytest Tests/test_VisualTests.py
             else
               echo "Invalid option"
             fi
