@@ -1,0 +1,259 @@
+name: Run Selenium Tests and publish report
+
+on:
+  schedule:
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+    inputs:
+      chrome:
+        description: 'Include Chrome'
+        required: false
+        default: true
+        type: boolean
+      edge:
+        description: 'Include Edge'
+        required: false
+        default: false
+        type: boolean
+
+      test_options:
+        description: 'Select test options'
+        required: true
+        default: 'All'
+        type: choice
+        options:
+          - 'All'
+          - 'Accessibility'
+          - 'Contact List'
+          - 'Email'
+          - 'Landing Page'
+          - 'Login'
+          - 'Social Media'
+
+jobs:
+  chrome-test:
+    name: Run Chrome tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.chrome == 'true' }}
+    steps:
+
+      - name: Set browser variable
+        run: echo "BROWSERS=Chrome" >> "$GITHUB_ENV"
+
+      - name: Checkout test repository
+        uses: actions/checkout@v4
+        with:
+          repository: Simeon-Zografov/new_demo_project
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+        working-directory: .
+
+      - name: Run Selenium tests
+        continue-on-error: true
+        env:
+          URL: ${{ vars.URL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          BROWSERS: ${{ env.BROWSERS }}
+          EMAIL: ${{ vars.EMAIL }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          USERNAME: ${{ vars.USERNAME }}
+
+        run: |
+          mkdir -p allure-results
+          if [ "${{ github.event_name }}" == 'schedule' ] || [ "${{ github.event.inputs.test_options }}" == 'All' ]; then
+            pytest
+          else
+            if [ "${{ github.event.inputs.test_options }}" == 'Accessibility' ]; then
+              pytest Tests/test_Accessibility.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Contact List' ]; then
+              pytest Tests/test_ContactList.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Email' ]; then
+              pytest Tests/test_EmailReader.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Landing Page' ]; then
+              pytest Tests/test_LandingPage.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Login' ]; then
+              pytest Tests/test_Login.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Social Media' ]; then
+              pytest Tests/test_SocialMediaLinks.py
+            else
+              echo "Invalid option"
+            fi
+          fi
+        working-directory: .
+
+      - name: Commit and push individual report to gh_pages
+        if: always()
+        continue-on-error: true
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh_pages || git checkout gh_pages
+          git pull origin gh_pages --rebase
+          mkdir -p results-chrome
+          cp -r allure-results/* results-chrome/
+          git add results-chrome
+          git commit -m "Add report for Chrome"
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull origin gh_pages --rebase
+            git push origin gh_pages && break
+            n=$((n+1))
+            echo "Push failed, retrying in 3 seconds..."
+            sleep 3
+          done
+          
+          if [ $n -ge 5 ]; then
+            echo "Failed to push after 5 attempts."
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  edge-test:
+    name: Run Edge tests
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'schedule' || github.event.inputs.edge == 'true' }}
+    steps:
+
+      - name: Set browser variable
+        run: echo "BROWSERS=Edge" >> "$GITHUB_ENV"
+
+      - name: Checkout test repository
+        uses: actions/checkout@v4
+        with:
+          repository: Simeon-Zografov/new_demo_project
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+        working-directory: .
+
+      - name: Run Selenium tests
+        continue-on-error: true
+        env:
+          URL: ${{ vars.URL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
+          BROWSERS: ${{ env.BROWSERS }}
+          EMAIL: ${{ vars.EMAIL }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+          USERNAME: ${{ vars.USERNAME }}
+
+        run: |
+          mkdir -p allure-results
+          if [ "${{ github.event_name }}" == 'schedule' ] || [ "${{ github.event.inputs.test_options }}" == 'All' ]; then
+            pytest
+          else
+            if [ "${{ github.event.inputs.test_options }}" == 'Accessibility' ]; then
+              pytest Tests/test_Accessibility.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Contact List' ]; then
+              pytest Tests/test_ContactList.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Email' ]; then
+              pytest Tests/test_EmailReader.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Landing Page' ]; then
+              pytest Tests/test_LandingPage.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Login' ]; then
+              pytest Tests/test_Login.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Social Media' ]; then
+              pytest Tests/test_SocialMediaLinks.py
+            else
+              echo "Invalid option"
+            fi
+          fi
+        working-directory: .
+
+      - name: Commit and push individual report to gh_pages
+        if: always()
+        continue-on-error: true
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git checkout -b gh_pages || git checkout gh_pages
+          git pull origin gh_pages --rebase
+          mkdir -p results-edge
+          cp -r allure-results/* results-edge/
+          git add results-edge
+          git commit -m "Add report for Edge"
+          n=0
+          until [ $n -ge 5 ]; do
+            git pull origin gh_pages --rebase
+            git push origin gh_pages && break
+            n=$((n+1))
+            echo "Push failed, retrying in 3 seconds..."
+            sleep 3
+          done
+          
+          if [ $n -ge 5 ]; then
+            echo "Failed to push after 5 attempts."
+            exit 1
+          fi
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  aggregate:
+    name: Generate report
+    needs: [ chrome-test, edge-test ]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh_pages branch
+        uses: actions/checkout@v4
+        with:
+          repository: Simeon-Zografov/new_demo_project
+          ref: gh_pages
+          path: gh_pages
+
+      - name: Merge individual reports
+        run: |
+          echo "Removing previous allure-results"
+          sudo rm -rf allure-results
+          sudo rm -rf gh_pages/allure-results
+          mkdir -p gh_pages/allure-results
+          for browser_dir in gh_pages/results-*; do
+            cp -r "$browser_dir"/* gh_pages/allure-results/
+          done
+          mkdir -p gh_pages/allure-results/history
+          echo "Cleaning up results directories"
+          rm -rf gh_pages/results-*
+
+      - name: Build test report
+        uses: simple-elf/allure-report-action@master
+        if: always()
+        with:
+          gh_pages: gh_pages
+          allure_history: allure-history
+          allure_results: gh_pages/allure-results
+          keep_reports: 20
+
+      - name: Clean up temporary directories
+        run: |
+          echo "Final cleanup of temporary directories"
+          sudo rm -rf gh_pages/allure-results
+          sudo rm -rf allure-results
+          sudo rm -rf gh_pages/results-*
+          sudo rm -rf allure-history/allure-results
+          sudo rm -rf allure-history/Common
+          sudo rm -rf allure-history/Pages
+          sudo rm -rf allure-history/Resources
+          sudo rm -rf allure-history/Tests
+          sudo rm -rf allure-history/Visual
+          sudo rm -rf allure-history/pytest.ini
+          sudo rm -rf allure-history/requirements.txt
+
+      - name: Publish test report
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh_pages
+          publish_dir: allure-history
