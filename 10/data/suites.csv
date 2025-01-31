@@ -1,0 +1,6 @@
+"DESCRIPTION","DURATION IN MS","NAME","PARENT SUITE","START TIME","STATUS","STOP TIME","SUB SUITE","SUITE","TEST CLASS","TEST METHOD"
+"","567","Visual check of the Landing page","Tests","Fri Jan 31 08:06:20 GMT 2025","skipped","Fri Jan 31 08:06:20 GMT 2025","TestVisual","test_Visual","",""
+"","496","Visual check of the Home page","Tests","Fri Jan 31 08:06:20 GMT 2025","skipped","Fri Jan 31 08:06:21 GMT 2025","TestVisual","test_Visual","",""
+"","2383","Visual check of the Home page after burger button click","Tests","Fri Jan 31 08:06:21 GMT 2025","skipped","Fri Jan 31 08:06:23 GMT 2025","TestVisual","test_Visual","",""
+"","5361","Visual check of the broken Home page","Tests","Fri Jan 31 08:06:23 GMT 2025","failed","Fri Jan 31 08:06:28 GMT 2025","TestVisual","test_Visual","",""
+"","6105","Visual check of the broken Home page after burger button click","Tests","Fri Jan 31 08:06:28 GMT 2025","failed","Fri Jan 31 08:06:35 GMT 2025","TestVisual","test_Visual","",""
