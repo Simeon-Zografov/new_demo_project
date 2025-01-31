@@ -12,6 +12,8 @@ def visual_comparison(driver, path, name):
     skip_mark = False
     driver.set_window_size(1280, 800)
     project_folder = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if not os.path.exists(os.path.join(project_folder, 'Visual', path)):
+        os.makedirs(os.path.join(project_folder, 'Visual', path))
     full_page_height = driver.execute_script("return document.body.scrollHeight")
     scroll_iterations = math.ceil(full_page_height / 800) + 1
     for i in range(1, scroll_iterations):
@@ -36,6 +38,10 @@ def visual_comparison(driver, path, name):
                         attachment_type=allure.attachment_type.PNG
                     )
                 assert mismatch == 0
+            if os.path.exists(current_image_path):
+                os.remove(current_image_path)
+            if os.path.exists(error_image_path):
+                os.remove(error_image_path)
         else:
             driver.save_screenshot(reference_image_path)
             skip_mark = True

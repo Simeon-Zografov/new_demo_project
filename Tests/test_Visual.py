@@ -34,7 +34,7 @@ class TestVisual(BaseClass):
         home_page_obj = HomePage(driver)
         driver.refresh()
         home_page_obj.click_burger_button()
-        time.sleep(1)
+        time.sleep(2)
         visual_comparison(driver, "home_page", "after_burger_button_click")
         home_page_obj.click_logout_button()
 

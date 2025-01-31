@@ -29,6 +29,7 @@ on:
           - 'Landing Page'
           - 'Login'
           - 'Social Media'
+          - 'Visual'
 
 jobs:
   chrome-test:
@@ -54,6 +55,16 @@ jobs:
         run: |
           pip install -r requirements.txt
         working-directory: .
+
+      - name: Download Reference Images (If Exists)
+        continue-on-error: true
+        uses: actions/download-artifact@v3
+        with:
+          name: reference-images
+          path: Visual/
+
+      - name: Ensure Reference Images Directory Exists
+        run: mkdir -p Visual/
 
       - name: Run Selenium tests
         continue-on-error: true
@@ -82,11 +93,20 @@ jobs:
               pytest Tests/test_Login.py
             elif [ "${{ github.event.inputs.test_options }}" == 'Social Media' ]; then
               pytest Tests/test_SocialMediaLinks.py
+            elif [ "${{ github.event.inputs.test_options }}" == 'Visual' ]; then
+              pytest Tests/test_Visual.py
             else
               echo "Invalid option"
             fi
           fi
         working-directory: .
+
+      - name: Re-upload Reference Images
+        uses: actions/upload-artifact@v3
+        with:
+          name: reference-images
+          path: Visual/
+          retention-days: 90
 
       - name: Commit and push individual report to gh_pages
         if: always()
