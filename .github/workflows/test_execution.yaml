@@ -58,7 +58,7 @@ jobs:
 
       - name: Download Reference Images (If Exists)
         continue-on-error: true
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@main
         with:
           name: reference-images
           path: Visual/
@@ -102,7 +102,7 @@ jobs:
         working-directory: .
 
       - name: Re-upload Reference Images
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@main
         with:
           name: reference-images
           path: Visual/
