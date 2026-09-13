@@ -1,0 +1,26 @@
+Found 2 accessibility violations:
+
+
+Rule Violated:
+duplicate-id - Ensures every id attribute value is unique
+	URL: https://dequeuniversity.com/rules/axe/3.1/duplicate-id?application=axeAPI
+	Impact Level: minor
+	Tags: cat.parsing wcag2a wcag411
+	Elements Affected:
+	1) Target: div[role="main"]
+		Document has multiple static elements with the same id attribute
+
+
+
+
+
+Rule Violated:
+page-has-heading-one - Ensure that the page, or at least one of its frames contains a level-one heading
+	URL: https://dequeuniversity.com/rules/axe/3.1/page-has-heading-one?application=axeAPI
+	Impact Level: moderate
+	Tags: cat.semantics best-practice
+	Elements Affected:
+	1) Target: html
+		Page must have a level-one heading
+
+
